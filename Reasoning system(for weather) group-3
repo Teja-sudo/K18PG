@@ -1,67 +1,106 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Mar 31 15:59:28 2020
+Created on Tue Mar 31 19:30:02 2020
 
 @author: Sanikommu Teja
 """
-
-
+from tkinter import *  
 import requests, json 
-apikey = "2280250b108608a55abc60d15a5dad24"
+import tkinter.messagebox
+from pandas import DataFrame
+import matplotlib.pyplot as plt
+from matplotlib import style 
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import ( FigureCanvasTkAgg, NavigationToolbar2Tk)
+ 
+ckx=0
 
-url = "http://api.openweathermap.org/data/2.5/weather?"
+def destroying(d0):
+            li=win.winfo_children()
+            #print(li)
+            for child in range(d0,len(li)):
+                li[child].destroy()
+win = Tk()  
+win.geometry('1900x800')
+win.config(background="grey1")
+lab0=Label(win, text = 'Enter city / state / country name into the box given below',font='arial 22 bold ',fg='cyan2',bg="grey7")
+lab0.place(x = 60, y = 50)
+es=StringVar()
+e1 = Entry(win,bg='ivory2',fg='grey1',font='Times 22',textvariable=es,width=70)
+e1.place(x = 150, y = 150)
+def funct1():
+  cget = es.get()
+  if not cget.strip():tkinter.messagebox.showwarning('Required','Please Enter any city name')
+  else:
+    global ckx
+    if ckx>0:destroying(3)
+    try:
+       
+        apikey = "2280250b108608a55abc60d15a5dad24"
+        url = "http://api.openweathermap.org/data/2.5/weather?"
+        
+        search=cget.lower()
+        url1 = url + "appid=" + apikey + "&q=" + search 
+        response = requests.get(url1) 
+        conget = response.json() 
+        if conget["cod"] != "404": 
+            conget2 = conget["main"] 
+            temperature =conget2["temp"] 
+            temperature=round((temperature-273.15),2)
+            pressure = conget2["pressure"] 
+            humidity = conget2["humidity"] 
+            k = conget["weather"] 
+            description = k[0]["description"] 
+            
+            ctylab=Label(win, text = 'Location',font='arial 22 bold ',fg='cyan2',bg="grey7")
+            ctylab.place(x = 50, y = 300)
+            
+            tlab=Label(win, text = 'Temperature',font='arial 22 bold ',fg='cyan2',bg="grey7")
+            tlab.place(x = 50, y = 360)
+            
+            hlab=Label(win, text = 'Humidity',font='arial 22 bold ',fg='cyan2',bg="grey7")
+            hlab.place(x = 50, y = 420)
+            
+            alab=Label(win, text = 'Atmospheric pressure',font='arial 22 bold ',fg='cyan2',bg="grey7")
+            alab.place(x = 50, y = 480)
+            
+            dlab=Label(win, text = 'Description',font='arial 22 bold ',fg='cyan2',bg="grey7")
+            dlab.place(x = 50, y = 540)
+            
+            ctylab1=Label(win, text = ': '+search,font='arial 22 bold ',fg='ivory2',bg="grey7")
+            ctylab1.place(x = 440, y = 300)
+            
+            tlab1=Label(win, text = ': '+str(temperature)+' \u2103',font='arial 22 bold ',fg='ivory2',bg="grey7")
+            tlab1.place(x = 440, y = 360)
+            
+            hlab1=Label(win, text = ': '+str(humidity)+' %',font='arial 22 bold ',fg='ivory2',bg="grey7")
+            hlab1.place(x = 440, y = 420)
+            
+            alab1=Label(win, text = ': '+str(pressure)+' hpa(HectoPascals)',font='arial 22 bold ',fg='ivory2',bg="grey7")
+            alab1.place(x = 440, y = 480)
+            
+            dlab1=Label(win, text = ': '+str(description),font='arial 22 bold ',fg='ivory2',bg="grey7")
+            dlab1.place(x = 440, y = 540)
+            
+            data1 = {'X-axis': ['T (c)','AP(hpa)','H (%)'],'Y-axis': [temperature,pressure,humidity]}
+            df1 = DataFrame(data1,columns=['X-axis','Y-axis'])
+            style.use('dark_background')
+            fig = plt.Figure(figsize=(5.2,5.15), dpi=100)
+            ax1 = fig.add_subplot(111)
+            bar1 = FigureCanvasTkAgg(fig, win)
+            bar1.get_tk_widget().place(x=1000,y=250)
+            df1 = df1[['X-axis','Y-axis']].groupby('X-axis').sum()
+            df1.plot(kind='bar', legend=True,grid=True, ax=ax1)
+            ax1.set_title('T=Temperature, AP=Atmospheric Pressure, H=Humidity')
+            
+            ckx=ckx+1     
+            
+        else:tkinter.messagebox.showinfo('Not found','city not found')
 
-city = 'phagwara'
+    except Exception as e:
+        tkinter.messagebox.showerror('error',e)
 
-url1 = url + "appid=" + apikey + "&q=" + city 
-
-response = requests.get(url1) 
-
-# json method of response object 
-# convert json format data into 
-# python format data 
-x = response.json() 
-print(x)
-# Now x contains list of nested dictionaries 
-# Check the value of "cod" key is equal to 
-# "404", means city is found otherwise, 
-# city is not found 
-if x["cod"] != "404": 
-
-	# store the value of "main" 
-	# key in variable y 
-	y = x["main"] 
-    
-	# store the value corresponding 
-	# to the "temp" key of y 
-	current_temperature = y["temp"] 
-    #print(str(y))
-	# store the value corresponding 
-	# to the "pressure" key of y 
-	current_pressure = y["pressure"] 
-
-	# store the value corresponding 
-	# to the "humidity" key of y 
-	current_humidiy = y["humidity"] 
-
-	# store the value of "weather" 
-	# key in variable z 
-	z = x["weather"] 
-
-	# store the value corresponding 
-	# to the "description" key at 
-	# the 0th index of z 
-	weather_description = z[0]["description"] 
-
-	# print following values 
-	print(" Temperature (in kelvin unit) = " +
-					str(current_temperature) +
-		"\n atmospheric pressure (in hPa unit) = " +
-					str(current_pressure) +
-		"\n humidity (in percentage) = " +
-					str(current_humidiy) +
-		"\n description = " +
-					str(weather_description)) 
-
-else: 
-	print(" City Not Found ") 
+b1 = Button(win, text = " GO ",bd=6,activebackground = "green4", fg='white',activeforeground = "white",cursor='hand2',font='Times 16 bold ',bg='green2',relief='groove',command=funct1)
+b1.place(x = 1200, y = 146)
+  
+win.mainloop()
